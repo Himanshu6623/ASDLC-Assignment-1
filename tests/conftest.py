@@ -5,8 +5,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from smart_todo.service import TodoService  # noqa: E402
-from smart_todo.storage import JsonStorage  # noqa: E402
+from smart_todo.service import TodoService
+from smart_todo.storage import JsonStorage
 
 
 @pytest.fixture

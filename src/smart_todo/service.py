@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 PRIORITIES = ("low", "medium", "high")
@@ -134,7 +134,7 @@ class TodoService:
             priority=clean_priority,
             status="todo",
             tags=clean_tags,
-            created_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            created_at=datetime.now(UTC).isoformat(timespec="seconds"),
         )
         tasks.append(task)
         self._save(next_id + 1, tasks)
