@@ -1,0 +1,34 @@
+{
+  "label": "initial",
+  "timestamp": "20261114T033441Z",
+  "gates": [
+    {
+      "gate": "lint",
+      "description": "Ruff static analysis (style, bugs, security-adjacent rules)",
+      "command": "C:\\Users\\himan\\AppData\\Local\\Programs\\Python\\Python313\\python.exe -m ruff check --config C:\\Users\\himan\\OneDrive\\Desktop\\Assignment-1\\Part-1A\\.harness\\ruff.toml src tests .harness",
+      "exit_code": 0,
+      "passed": true,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    {
+      "gate": "security",
+      "description": "Bandit SAST on src/ and .harness/",
+      "command": "C:\\Users\\himan\\AppData\\Local\\Programs\\Python\\Python313\\python.exe -m bandit -q -r src .harness -c C:\\Users\\himan\\OneDrive\\Desktop\\Assignment-1\\Part-1A\\.harness\\bandit.yaml",
+      "exit_code": 0,
+      "passed": true,
+      "stdout": "",
+      "stderr": "[manager]\tWARNING\tTest in comment: fixed is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: trusted is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: command is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: lists is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: only is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: command is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: list is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: is is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: constant is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: no is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: user is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: input is not a test name or id, ignoring\n"
+    },
+    {
+      "gate": "tests",
+      "description": "pytest spec-derived tests, coverage >= 90%",
+      "command": "C:\\Users\\himan\\AppData\\Local\\Programs\\Python\\Python313\\python.exe -m pytest -q --cov=smart_todo --cov-branch --cov-report=term-missing --cov-fail-under=90 tests",
+      "exit_code": 0,
+      "passed": true,
+      "stdout": ".................................................................        [100%]\n=============================== tests coverage ================================\n_______________ coverage: platform win32, python 3.13.2-final-0 _______________\n\nName                         Stmts   Miss Branch BrPart  Cover   Missing\n------------------------------------------------------------------------\nsrc\\smart_todo\\__init__.py       1      0      0      0   100%\nsrc\\smart_todo\\__main__.py       3      3      0      0     0%   1-5\nsrc\\smart_todo\\cli.py           62      1     16      2    96%   75->81, 85\nsrc\\smart_todo\\service.py      129      0     48      1    99%   156->158\nsrc\\smart_todo\\storage.py       33      4      6      0    85%   38-41\n------------------------------------------------------------------------\nTOTAL                          228      8     70      3    96%\nRequired test coverage of 90% reached. Total coverage: 95.64%\n65 passed in 1.21s\n",
+      "stderr": ""
+    }
+  ],
+  "overall": "PASS"
+}

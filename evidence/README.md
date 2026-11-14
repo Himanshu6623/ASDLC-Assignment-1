@@ -1,0 +1,4 @@
+- `initial-generation/`: first code produced by the coding agent, before any harness-driven fix
+- `final-generation/`: code after repair (copy of `src/` at acceptance time)
+- `harness-results/`: JSON per run and `*-feedback.md` for failed runs (written by the runner)
+- `harness-log.md`: your narrative of the above

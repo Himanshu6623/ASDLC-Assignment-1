@@ -1,0 +1,2 @@
+# Bandit configuration. Do NOT add skips to obtain PASS; see README.
+exclude_dirs: ["tests"]
