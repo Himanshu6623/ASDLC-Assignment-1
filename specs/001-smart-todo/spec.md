@@ -8,6 +8,20 @@
 
 **Input**: User description: "Create a Smart Todo CLI/library with validated task creation and updates, filtering and ordering, controlled status transitions, JSON persistence, defined CLI exit codes, and quality requirements."
 
+## Clarifications
+
+### Session 2026-11-21
+
+- Q: Can a done task be reopened? → A: Yes, a task may transition only from `done` to `todo`.
+- Q: Are deleted task IDs reused? → A: No; ID allocation is monotonic and deleted IDs are never reused.
+- Q: Is tag filtering case-sensitive? → A: No; tag filtering is case-insensitive.
+- Q: What happens when the saved data file is corrupt or wrongly structured? → A: The operation fails with a domain error and the file is never overwritten.
+- Q: Should saved task records include created_at or version fields? → A: No; records contain exactly `id`, `title`, `priority`, `tags`, and `status`.
+- Q: What output format should CLI commands print, and should there be a `--json` option? → A: CLI success output is human-readable text only; there is no `--json` option.
+- Q: How should task IDs that are not positive integers be classified? → A: A non-integer ID is usage error 2; a zero or negative integer ID is domain error 1.
+- Q: How should `list` classify an unknown status or tag filter value? → A: An unknown status is usage error 2; an unknown tag is a valid filter that returns no matches with success 0.
+- Q: Should an update with no fields supplied succeed or fail? → A: It fails as usage error 2 and does not change the task.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Create and review tasks (Priority: P1)
@@ -84,6 +98,9 @@ A CLI user can distinguish successful commands, rejected task operations, and in
 - A tag must, after lowercasing, contain 1-20 characters from `[a-z0-9_-]`; whitespace is not implicitly trimmed.
 - Duplicate tags are removed after lowercasing; the maximum of 10 tags is measured after deduplication.
 - IDs remain unique positive integers; deleting the highest-numbered task does not make its ID reusable.
+- A non-integer task ID is a usage error (exit code 2); an integer ID of zero or less is a domain error (exit code 1).
+- An unknown status filter is a usage error (exit code 2). A valid tag filter that matches no tasks returns an empty successful list (exit code 0).
+- An update that supplies no title, priority, or tag fields is a usage error (exit code 2) and does not change the task.
 - Filtering by both tag and status uses an intersection, not a union.
 - A JSON document that parses but has missing, extra, or invalidly typed required fields is rejected and not overwritten.
 - A failed create, update, transition, or delete leaves the in-memory task data and persisted data unchanged.
@@ -105,6 +122,7 @@ A CLI user can distinguish successful commands, rejected task operations, and in
 - **FR-011**: The saved JSON document MUST be an object with exactly `next_id` and `tasks` fields. `next_id` MUST be a positive integer greater than every saved task ID; `tasks` MUST be an array of task objects with exactly `id`, `title`, `priority`, `tags`, and `status` fields. IDs MUST be unique positive integers. Saved titles MUST already be trimmed and 1-100 characters; priorities MUST be `low`, `medium`, or `high`; tags MUST be normalized, unique, and satisfy FR-003; statuses MUST be `todo`, `in_progress`, or `done`. Invalid JSON or any other structure MUST produce an error and MUST NOT be overwritten.
 - **FR-012**: The CLI MUST exit with code `0` on success, code `1` on a domain error, and code `2` on a usage error. On a domain error, it MUST write an error message to stderr and no output to stdout.
 - **FR-013**: The CLI and library MUST perform all specified task operations without network access.
+- **FR-014**: CLI success output MUST use human-readable text. The CLI MUST NOT provide a `--json` output option.
 
 ### Non-Functional Requirements
 
