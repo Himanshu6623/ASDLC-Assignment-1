@@ -1,10 +1,9 @@
-"""Core domain logic for Smart Todo (FR-1 .. FR-6)."""
+"""Core domain logic for Smart Todo."""
 
 from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
 from typing import Any
 
 PRIORITIES = ("low", "medium", "high")
@@ -18,6 +17,7 @@ TRANSITIONS = {
 MAX_TITLE_LEN = 100
 MAX_TAGS = 10
 TAG_PATTERN = re.compile(r"^[a-z0-9_-]{1,20}$")
+TASK_FIELDS = {"id", "title", "priority", "tags", "status"}
 
 
 class TodoError(Exception):
@@ -45,9 +45,8 @@ class Task:
     id: int
     title: str
     priority: str = "medium"
-    status: str = "todo"
     tags: list[str] = field(default_factory=list)
-    created_at: str = ""
+    status: str = "todo"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -60,7 +59,7 @@ def validate_title(title: Any) -> str:
     if not cleaned:
         raise ValidationError("title must not be empty")
     if len(cleaned) > MAX_TITLE_LEN:
-        raise ValidationError(f"title must be at most {MAX_TITLE_LEN} characters")
+        raise ValidationError("title must be at most 100 characters")
     return cleaned
 
 
@@ -79,20 +78,24 @@ def normalize_tags(tags: Any) -> list[str]:
     for raw in tags:
         if not isinstance(raw, str):
             raise ValidationError("each tag must be a string")
-        tag = raw.strip().lower()
-        if not tag:
-            continue
-        if not TAG_PATTERN.match(tag):
+        tag = raw.lower()
+        if not TAG_PATTERN.fullmatch(tag):
             raise ValidationError(f"invalid tag: {raw!r}")
         if tag not in result:
             result.append(tag)
     if len(result) > MAX_TAGS:
-        raise ValidationError(f"at most {MAX_TAGS} tags per task")
+        raise ValidationError("at most 10 tags per task")
     return result
 
 
+def validate_status(status: Any) -> str:
+    if status not in STATUSES:
+        raise ValidationError(f"status must be one of {', '.join(STATUSES)}")
+    return str(status)
+
+
 class TodoService:
-    """Task operations backed by a storage object with load()/save()."""
+    """Task operations backed by a storage object."""
 
     def __init__(self, storage: Any) -> None:
         self._storage = storage
@@ -100,15 +103,24 @@ class TodoService:
     def _load(self) -> tuple[int, list[Task]]:
         data = self._storage.load()
         try:
+            next_id = data["next_id"]
             tasks = [Task(**item) for item in data["tasks"]]
-            next_id = int(data["next_id"])
+            if not isinstance(next_id, int) or isinstance(next_id, bool) or next_id <= 0:
+                raise StorageError("invalid next_id")
+            if any(
+                not isinstance(task.id, int)
+                or isinstance(task.id, bool)
+                or task.id <= 0
+                for task in tasks
+            ):
+                raise StorageError("invalid task id")
         except (KeyError, TypeError, ValueError) as exc:
             raise StorageError(f"invalid task data: {exc}") from exc
         return next_id, tasks
 
     def _save(self, next_id: int, tasks: list[Task]) -> None:
         self._storage.save(
-            {"version": 1, "next_id": next_id, "tasks": [t.to_dict() for t in tasks]}
+            {"next_id": next_id, "tasks": [task.to_dict() for task in tasks]}
         )
 
     @staticmethod
@@ -122,7 +134,7 @@ class TodoService:
         self,
         title: str,
         priority: str = "medium",
-        tags: list[str] | None = None,
+        tags: list[str] | tuple[str, ...] | None = None,
     ) -> Task:
         clean_title = validate_title(title)
         clean_priority = validate_priority(priority)
@@ -132,15 +144,16 @@ class TodoService:
             id=next_id,
             title=clean_title,
             priority=clean_priority,
-            status="todo",
             tags=clean_tags,
-            created_at=datetime.now(UTC).isoformat(timespec="seconds"),
+            status="todo",
         )
         tasks.append(task)
         self._save(next_id + 1, tasks)
         return task
 
     def get(self, task_id: int) -> Task:
+        if not isinstance(task_id, int) or isinstance(task_id, bool) or task_id <= 0:
+            raise NotFoundError(f"task {task_id} not found")
         _, tasks = self._load()
         return self._find(tasks, task_id)
 
@@ -153,48 +166,50 @@ class TodoService:
         _, tasks = self._load()
         if tag is not None:
             wanted = normalize_tags([tag])
-            if wanted:
-                tasks = [t for t in tasks if wanted[0] in t.tags]
+            tasks = [task for task in tasks if wanted and wanted[0] in task.tags]
         if status is not None:
-            if status not in STATUSES:
-                raise ValidationError(f"status must be one of {', '.join(STATUSES)}")
-            tasks = [t for t in tasks if t.status == status]
+            clean_status = validate_status(status)
+            tasks = [task for task in tasks if task.status == clean_status]
         if sort_by_priority:
-            return sorted(tasks, key=lambda t: (PRIORITY_RANK[t.priority], t.id))
-        return sorted(tasks, key=lambda t: t.id)
+            return sorted(tasks, key=lambda task: (PRIORITY_RANK[task.priority], task.id))
+        return sorted(tasks, key=lambda task: task.id)
 
     def update(
         self,
         task_id: int,
         title: str | None = None,
         priority: str | None = None,
-        tags: list[str] | None = None,
+        tags: list[str] | tuple[str, ...] | None = None,
     ) -> Task:
+        clean_title = validate_title(title) if title is not None else None
+        clean_priority = validate_priority(priority) if priority is not None else None
+        clean_tags = normalize_tags(tags) if tags is not None else None
         next_id, tasks = self._load()
         task = self._find(tasks, task_id)
-        if title is not None:
-            task.title = validate_title(title)
-        if priority is not None:
-            task.priority = validate_priority(priority)
-        if tags is not None:
-            task.tags = normalize_tags(tags)
+        if clean_title is not None:
+            task.title = clean_title
+        if clean_priority is not None:
+            task.priority = clean_priority
+        if clean_tags is not None:
+            task.tags = clean_tags
         self._save(next_id, tasks)
         return task
 
     def set_status(self, task_id: int, new_status: str) -> Task:
-        if new_status not in STATUSES:
-            raise ValidationError(f"status must be one of {', '.join(STATUSES)}")
+        clean_status = validate_status(new_status)
         next_id, tasks = self._load()
         task = self._find(tasks, task_id)
-        if new_status not in TRANSITIONS[task.status]:
+        if clean_status not in TRANSITIONS[task.status]:
             raise InvalidTransitionError(
-                f"cannot move task {task_id} from {task.status} to {new_status}"
+                f"cannot move task {task_id} from {task.status} to {clean_status}"
             )
-        task.status = new_status
+        task.status = clean_status
         self._save(next_id, tasks)
         return task
 
     def delete(self, task_id: int) -> None:
+        if not isinstance(task_id, int) or isinstance(task_id, bool) or task_id <= 0:
+            raise NotFoundError(f"task {task_id} not found")
         next_id, tasks = self._load()
         task = self._find(tasks, task_id)
         tasks.remove(task)

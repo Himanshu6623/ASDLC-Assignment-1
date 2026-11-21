@@ -1,9 +1,8 @@
-"""Command-line interface. Exit codes: 0 success, 1 domain error, 2 usage error."""
+"""Command-line interface with exit codes 0, 1, and 2."""
 
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 from collections.abc import Sequence
@@ -21,53 +20,54 @@ def build_parser() -> argparse.ArgumentParser:
         default=os.environ.get("TODO_FILE", DEFAULT_FILE),
         help="path to JSON data file (env TODO_FILE, default todo.json)",
     )
-    sub = parser.add_subparsers(dest="command", required=True)
+    subcommands = parser.add_subparsers(dest="command", required=True)
 
-    add = sub.add_parser("add", help="add a task")
-    add.add_argument("title")
-    add.add_argument("--priority", default="medium", choices=PRIORITIES)
-    add.add_argument("--tag", action="append", default=[], dest="tags")
+    add_parser = subcommands.add_parser("add", help="add a task")
+    add_parser.add_argument("title")
+    add_parser.add_argument("--priority", default="medium", choices=PRIORITIES)
+    add_parser.add_argument("--tag", action="append", dest="tags")
 
-    lst = sub.add_parser("list", help="list tasks")
-    lst.add_argument("--tag")
-    lst.add_argument("--status", choices=STATUSES)
-    lst.add_argument("--no-sort", action="store_true", help="order by id")
-    lst.add_argument("--json", action="store_true", dest="as_json")
+    list_parser = subcommands.add_parser("list", help="list tasks")
+    list_parser.add_argument("--tag")
+    list_parser.add_argument("--status", choices=STATUSES)
+    list_parser.add_argument("--no-sort", action="store_true")
 
-    upd = sub.add_parser("update", help="update a task")
-    upd.add_argument("id", type=int)
-    upd.add_argument("--title")
-    upd.add_argument("--priority", choices=PRIORITIES)
-    upd.add_argument("--tag", action="append", dest="tags")
+    update_parser = subcommands.add_parser("update", help="update a task")
+    update_parser.add_argument("id", type=int)
+    update_parser.add_argument("--title")
+    update_parser.add_argument("--priority", choices=PRIORITIES)
+    update_parser.add_argument("--tag", action="append", dest="tags")
 
-    stat = sub.add_parser("status", help="change task status")
-    stat.add_argument("id", type=int)
-    stat.add_argument("new_status", choices=STATUSES)
+    status_parser = subcommands.add_parser("status", help="change task status")
+    status_parser.add_argument("id", type=int)
+    status_parser.add_argument("new_status", choices=STATUSES)
 
-    dele = sub.add_parser("delete", help="delete a task")
-    dele.add_argument("id", type=int)
+    delete_parser = subcommands.add_parser("delete", help="delete a task")
+    delete_parser.add_argument("id", type=int)
     return parser
 
 
 def format_task(task: Task) -> str:
-    tags = " ".join(f"#{t}" for t in task.tags)
+    tags = " ".join(f"#{tag}" for tag in task.tags)
     line = f"{task.id} [{task.status}] ({task.priority}) {task.title}"
     return f"{line} {tags}".rstrip()
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.command == "update" and all(
+        value is None for value in (args.title, args.priority, args.tags)
+    ):
+        parser.error("update requires --title, --priority, or --tag")
     service = TodoService(JsonStorage(args.file))
     try:
         if args.command == "add":
             print(format_task(service.add(args.title, args.priority, args.tags)))
         elif args.command == "list":
             tasks = service.list(args.tag, args.status, not args.no_sort)
-            if args.as_json:
-                print(json.dumps([t.to_dict() for t in tasks], indent=2))
-            else:
-                for task in tasks:
-                    print(format_task(task))
+            for task in tasks:
+                print(format_task(task))
         elif args.command == "update":
             print(format_task(service.update(args.id, args.title, args.priority, args.tags)))
         elif args.command == "status":
