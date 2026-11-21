@@ -116,6 +116,7 @@
 - [ ] T028 [US4] [IMPLEMENTATION] Update `src/smart_todo/cli.py` so task IDs are parsed as integers (non-integer exits 2 via argparse), zero/negative IDs reach the service and exit 1 as not found, list --status is restricted to todo/in_progress/done (unknown exits 2), an unknown tag filter returns an empty list with exit 0, and the --json option is removed, covering FR-005, FR-012 and FR-014.
 - [ ] T029 [US4] [IMPLEMENTATION] Update `src/smart_todo/cli.py` so an update with no title/priority/tag exits 2 as a usage error without touching saved data, covering FR-007 and FR-012.
 - [ ] T030 [US4] [IMPLEMENTATION] Update `src/smart_todo/cli.py` so domain errors, including corrupt saved data, print a message to stderr, nothing to stdout, and exit 1, while successes print deterministic human-readable text and exit 0, covering FR-011, FR-012 and FR-014.
+- [ ] T037 [P] [US4] [TEST] Add an end-to-end CLI journey test in `tests/test_cli.py` that runs add, list, update, status (todo -> in_progress -> done) and delete against one data file through main(), checking exit codes and stdout at each step and never editing the data file by hand, covering SC-008.
 
 **Checkpoint**: User Story 4 is independently testable with deterministic exit codes and output streams.
 
@@ -129,6 +130,7 @@
 - [ ] T032 [P] [TEST] Verify all FR-001 through FR-014 and NFR-001 through NFR-004 have at least one binary pass/fail test mapped in `tests/test_service.py`, `tests/test_cli.py`, or `.harness/run_harness.py`, with a final traceability review in `specs/001-smart-todo/plan.md`.
 - [ ] T033 [IMPLEMENTATION] Update `src/smart_todo/service.py`, `src/smart_todo/storage.py`, and `src/smart_todo/cli.py` for explicit public type hints, no avoidable complexity, no network calls, no shell/eval/exec usage, and no lint or Bandit suppressions, covering NFR-001, NFR-002, FR-013, and NFR-004.
 - [ ] T034 [IMPLEMENTATION] Update `.harness/run_harness.py` if needed to run ruff, Bandit, and pytest with `--cov-branch` and `--cov-fail-under=90`, record each gate result under `evidence/harness-results/`, and avoid editing recorded PASS/FAIL results, covering NFR-001 through NFR-003.
+- [ ] T036 [IMPLEMENTATION] After /speckit-implement finishes and before running the harness or any harness-driven repair, copy the first generated `src/` and `tests/` into `evidence/initial-generation/agent-output/` (covering the constitution's preservation rule).
 - [ ] T035 [IMPLEMENTATION] Run `python .harness/run_harness.py --label final` and preserve the generated machine-readable result under `evidence/harness-results/` plus genuine gate output, covering FR-001 through FR-014 and NFR-001 through NFR-004.
 
 ---

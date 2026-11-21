@@ -1,6 +1,6 @@
 # Feature Specification: Smart Todo CLI and Library
 
-**Feature Branch**: Not created
+**Feature Branch**: not created (work on master; feature directory specs/001-smart-todo)
 
 **Created**: 2026-11-14
 

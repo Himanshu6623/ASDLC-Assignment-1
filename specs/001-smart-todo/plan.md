@@ -1,6 +1,6 @@
 # Implementation Plan: Smart Todo CLI and Library
 
-**Branch**: `001-smart-todo` | **Date**: 2026-11-21 | **Spec**: [spec.md](./spec.md)
+**Feature Branch**: not created (work on master; feature directory specs/001-smart-todo) | **Date**: 2026-11-21 | **Spec**: [spec.md](./spec.md)
 
 **Input**: Feature specification from `/specs/001-smart-todo/spec.md`
 
