@@ -39,7 +39,3 @@ CLI behavior for FR-007 and FR-014. After the repair, the suite passed 92 tests 
 **ACCEPT.** The latest run passed all three gates: Ruff, Bandit, and 92 pytest tests.
 Coverage was 92.84%, which is above the required 90%. The final generated files are
 saved in `evidence/final-generation/`.
-
-These results are specific to the recorded Windows environment and Python 3.13.2.
-They cover the project harness and checked-in test suite, but do not establish
-compatibility with every other operating system or runtime.
