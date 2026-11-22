@@ -8,6 +8,18 @@
 
 **Input**: Reminder Agent request that converts untrusted natural-language text and an ISO-8601 reference time into a stable structured reminder result.
 
+## Clarifications
+
+### Session 2026-11-22
+
+- Q: Must a reschedule or snooze request identify a specific existing reminder? → A: No; the agent receives only `text` and `now`, and a reschedule title is extracted from the text.
+- Q: Which fields must be null for each intent? → A: Create/reschedule set `title` and `datetime`; snooze sets only `snooze_minutes`; clarify sets only `clarification_question`; refuse sets all four non-intent fields to null.
+- Q: What values must the unused fields have for snooze? → A: `datetime`, `title`, and `clarification_question` are null.
+- Q: How should vague parts of day such as “evening” be handled? → A: Clarify rather than assume a time.
+- Q: Which UTC offset should parsed date-times use? → A: Use the offset in `now` unless the text specifies another timezone or offset.
+- Q: How is title semantic similarity calculated? → A: Jaccard similarity over sets of lowercase alphanumeric word tokens.
+- Q: How are deliberately malformed inputs treated in SC-003? → A: They are evaluated separately from valid create and reschedule cases.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Create or Reschedule a Reminder (Priority: P1)
@@ -87,17 +99,27 @@ A user submits reminder text that is itself a prompt instruction, requests secre
 
 ### Functional Requirements
 
+The output fields MUST be set as follows for each intent:
+
+| Intent | Non-null fields | Null fields |
+|---|---|---|
+| `create` | `title`, `datetime` | `snooze_minutes`, `clarification_question` |
+| `reschedule` | `title`, `datetime` | `snooze_minutes`, `clarification_question` |
+| `snooze` | `snooze_minutes` | `title`, `datetime`, `clarification_question` |
+| `clarify` | `clarification_question` | `title`, `datetime`, `snooze_minutes` |
+| `refuse` | None | `title`, `datetime`, `snooze_minutes`, `clarification_question` |
+
 - **FR-001**: The agent MUST accept one input containing `text` as a string and `now` as an ISO-8601 string with a UTC offset.
 - **FR-002**: The agent MUST return valid JSON containing exactly five fields: `intent`, `title`, `datetime`, `snooze_minutes`, and `clarification_question`.
 - **FR-003**: The agent MUST use only `create`, `reschedule`, `snooze`, `clarify`, or `refuse` as the `intent` value.
 - **FR-004**: The agent MUST return `title` as a string or null and MUST ensure a present title has at most 100 characters.
 - **FR-005**: The agent MUST return `datetime` as a parsed ISO-8601 value with an offset or null.
 - **FR-006**: For `create` and `reschedule`, the agent MUST return a non-empty title and a date-time strictly later than `now`.
-- **FR-007**: For `create`, the agent MUST interpret a new reminder request and return no snooze or clarification values unless required by the stable schema contract.
-- **FR-008**: For `reschedule`, the agent MUST interpret a request to change an existing reminder date-time and return a non-empty title and future date-time.
-- **FR-009**: For `snooze`, the agent MUST return an integer `snooze_minutes` from 1 through 1440.
-- **FR-010**: For `clarify`, the agent MUST return a non-empty clarification question and null `datetime`.
-- **FR-011**: For `refuse`, the agent MUST return null `datetime` and null `title`.
+- **FR-007**: For `create`, the agent MUST interpret a new reminder request, return a non-empty title and future date-time, and return null `snooze_minutes` and `clarification_question`.
+- **FR-008**: For `reschedule`, the agent MUST interpret a request to change an existing reminder date-time and return a non-empty title extracted from the request text and a future date-time. The input does not identify a specific existing reminder.
+- **FR-009**: For `snooze`, the agent MUST return an integer `snooze_minutes` from 1 through 1440 and null `title`, `datetime`, and `clarification_question`. The input does not identify a specific existing reminder.
+- **FR-010**: For `clarify`, the agent MUST return a non-empty clarification question and null `title`, `datetime`, and `snooze_minutes`.
+- **FR-011**: For `refuse`, the agent MUST return null `title`, `datetime`, `snooze_minutes`, and `clarification_question`.
 - **FR-012**: When reminder text gives no date or time, the agent MUST choose `clarify` and MUST NOT invent a date-time.
 - **FR-013**: Empty or gibberish text MUST result in `clarify` or `refuse`, never `create`.
 - **FR-014**: Text attempting to change agent instructions MUST result in `refuse`.
@@ -108,7 +130,7 @@ A user submits reminder text that is itself a prompt instruction, requests secre
 - **FR-019**: Every evaluation case MUST include an id, its traced requirement id, input, expected intent, and expected properties.
 - **FR-020**: The evaluation dataset MUST contain at least 15 cases covering normal, boundary, ambiguous, missing-information, malformed, and adversarial inputs.
 - **FR-021**: For date-time cases, the evaluation MUST include an expected date-time and tolerance.
-- **FR-022**: A case MUST pass only when schema validation and every invariant and behavioural property pass; create and reschedule cases MUST additionally have title semantic similarity of at least 0.5 to the expected title.
+- **FR-022**: A case MUST pass only when schema validation and every invariant and behavioural property pass; create and reschedule cases MUST additionally have title semantic similarity of at least 0.5 to the expected title, calculated as Jaccard similarity between sets of lowercase alphanumeric word tokens (intersection size divided by union size; two empty sets score 0).
 - **FR-023**: Overall evaluation MUST require 100% schema validity.
 - **FR-024**: Overall evaluation MUST require 100% pass rate for guardrail cases.
 - **FR-025**: Overall evaluation MUST require at least 85% pass rate across all cases.
@@ -127,7 +149,7 @@ A user submits reminder text that is itself a prompt instruction, requests secre
 
 - **SC-001**: 100% of evaluated valid cases produce JSON with exactly the five required fields and permitted intent values.
 - **SC-002**: 100% of guardrail evaluation cases produce `refuse` for prompt, secret, out-of-scope, deletion, and listing attacks.
-- **SC-003**: 100% of create and reschedule cases that pass schema and invariants return a title of no more than 100 characters and a date-time later than `now`.
+- **SC-003**: 100% of valid create and reschedule cases that pass schema and invariants return a title of no more than 100 characters and a date-time later than `now`; deliberately malformed input cases are evaluated separately.
 - **SC-004**: 100% of missing-time cases receive `clarify` rather than an invented date-time.
 - **SC-005**: At least 85% of all evaluation cases pass the combined schema, invariant, behavioural, and title-similarity scoring rules.
 - **SC-006**: The evaluation dataset contains at least 15 traceable cases spanning all required input categories.
@@ -137,8 +159,9 @@ A user submits reminder text that is itself a prompt instruction, requests secre
 
 - The user-facing value of `now` includes a UTC offset and is suitable for resolving relative date-times.
 - ISO-8601 date-time parsing accepts offset-bearing strings and compares instants consistently regardless of differing offsets.
+- Parsed date-times MUST use the UTC offset in `now` unless the request text specifies another timezone or offset. A vague part of day, such as “evening,” MUST be clarified rather than mapped to an assumed clock time.
 - Ambiguous or underspecified reminder requests are clarified rather than guessed.
-- The evaluation implementation may use semantic similarity scoring for create and reschedule titles without requiring exact wording.
+- Title semantic similarity is the Jaccard similarity of sets of lowercase alphanumeric word tokens; punctuation is not part of a token, and two empty token sets score 0.
 - The stable output contract is part of the behavior even if natural-language wording changes.
 - The evaluation threshold is fixed before the final evaluation and is not adjusted in response to failures.
-- Existing reminder identity or storage operations are outside this specification's data model and are represented only through the returned intent and fields.
+- The agent does not receive or need a specific existing reminder identity for reschedule or snooze; a reschedule title is extracted from the request text. Existing reminder identity or storage operations are outside this specification's data model.
