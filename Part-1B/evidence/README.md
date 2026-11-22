@@ -1,0 +1,5 @@
+- `initial-generation/`: first code produced before any harness-driven repair
+- `final-generation/`: code at acceptance time
+- `eval-runs/`: one JSON per evaluation run, plus `*-feedback.md` for failed runs
+- `eval-results.json`: the latest full evaluation run (written by the runner, never by hand)
+- `harness-log.md`: your own narrative of the above
