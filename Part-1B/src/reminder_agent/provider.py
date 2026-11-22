@@ -19,6 +19,17 @@ DEFAULT_MODEL = "gemini-flash-latest"
 RETRY_STATUSES = {429, 500, 502, 503, 504}
 
 
+def _error_detail(raw: bytes, secret: str) -> str:
+    """Short, key-redacted reason taken from the service's JSON error body."""
+    try:
+        message = str(json.loads(raw)["error"]["message"])
+    except (ValueError, KeyError, TypeError):
+        return ""
+    if secret:
+        message = message.replace(secret, "[redacted]")
+    return message[:300]
+
+
 class ServiceError(Exception):
     """The model service failed (network, quota, configuration, blocked or empty reply)."""
 
@@ -73,9 +84,12 @@ class GeminiProvider:
                         return json.loads(raw)  # type: ignore[no-any-return]
                     except json.JSONDecodeError as exc:
                         raise ServiceError("bad_response", "service reply was not JSON") from exc
+                detail = _error_detail(raw, self._api_key)
+                suffix = f": {detail}" if detail else ""
                 if status not in RETRY_STATUSES:
-                    raise ServiceError("http", f"HTTP {status}", status)
-                last = ServiceError("rate_limit" if status == 429 else "server", f"HTTP {status}", status)
+                    raise ServiceError("http", f"HTTP {status}{suffix}", status)
+                kind = "rate_limit" if status == 429 else "server"
+                last = ServiceError(kind, f"HTTP {status}{suffix}", status)
             finally:
                 conn.close()
             if attempt < self.max_attempts:

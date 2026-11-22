@@ -123,3 +123,13 @@ def test_list_models_keeps_generate_content_models(scripted):
     ]}
     scripted.script = [Response(200, json.dumps(body).encode())]
     assert make().list_models() == ["a"]
+
+
+def test_http_error_reports_service_reason_with_key_redacted(scripted):
+    body = json.dumps({"error": {"message": "model test-key-value is not found for generateContent"}})
+    scripted.script = [Response(404, body.encode())]
+    with pytest.raises(ServiceError) as info:
+        make().generate("s", "u")
+    assert info.value.status == 404
+    assert "is not found for generateContent" in info.value.message
+    assert "test-key-value" not in str(info.value)
