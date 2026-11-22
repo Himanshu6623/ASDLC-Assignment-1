@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 STOPWORDS = frozenset(
@@ -11,7 +10,17 @@ STOPWORDS = frozenset(
 
 
 def tokens(text: str) -> set[str]:
-    return {t for t in re.findall(r"[a-z0-9]+", text.lower()) if t not in STOPWORDS}
+    words: list[str] = []
+    current: list[str] = []
+    for char in text.lower():
+        if char.isalnum():
+            current.append(char)
+        elif current:
+            words.append("".join(current))
+            current = []
+    if current:
+        words.append("".join(current))
+    return {word for word in words if word not in STOPWORDS}
 
 
 def jaccard(left: str, right: str) -> float:

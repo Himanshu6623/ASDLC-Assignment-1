@@ -56,4 +56,26 @@ def validate_result(parsed: Any) -> list[str]:
     question = parsed["clarification_question"]
     if question is not None and not isinstance(question, str):
         problems.append("clarification_question must be a string or null")
+    intent = parsed["intent"]
+    if intent in ("create", "reschedule"):
+        if not isinstance(title, str) or not title.strip():
+            problems.append("create/reschedule title must be a non-empty string")
+        if parse_offset_datetime(when) is None:
+            problems.append("create/reschedule datetime must be offset-bearing")
+        if parsed["snooze_minutes"] is not None or parsed["clarification_question"] is not None:
+            problems.append("create/reschedule unused fields must be null")
+    elif intent == "snooze":
+        if minutes is None or isinstance(minutes, bool) or not isinstance(minutes, int):
+            problems.append("snooze intent requires an integer snooze_minutes")
+        if title is not None or when is not None or parsed["clarification_question"] is not None:
+            problems.append("snooze unused fields must be null")
+    elif intent == "clarify":
+        if not isinstance(question, str) or not question.strip():
+            problems.append("clarify intent requires a non-empty clarification_question")
+        if title is not None or when is not None or minutes is not None:
+            problems.append("clarify unused fields must be null")
+    elif intent == "refuse":
+        payload_fields = ("title", "datetime", "snooze_minutes", "clarification_question")
+        if any(parsed[field] is not None for field in payload_fields):
+            problems.append("refuse payload fields must be null")
     return problems

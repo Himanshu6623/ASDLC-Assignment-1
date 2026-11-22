@@ -16,7 +16,8 @@ from typing import Any
 
 HOST = "generativelanguage.googleapis.com"
 DEFAULT_MODEL = "gemini-flash-latest"
-RETRY_STATUSES = {429, 500, 502, 503, 504}
+RETRY_STATUSES = {408, 429, 500, 502, 503, 504}
+NO_RETRY_STATUSES = {400, 401, 402, 403}
 
 
 def _error_detail(raw: bytes, secret: str) -> str:
@@ -47,7 +48,7 @@ class GeminiProvider:
         model: str = DEFAULT_MODEL,
         temperature: float = 0.0,
         timeout: float = 30.0,
-        max_attempts: int = 4,
+        max_attempts: int = 3,
         sleeper: Callable[[float], None] = time.sleep,
     ) -> None:
         self._api_key = api_key

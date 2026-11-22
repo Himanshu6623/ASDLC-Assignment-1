@@ -129,3 +129,8 @@ def test_layer3_flags_unrelated_title_and_skips_other_intents():
     refuse = {"intent": "refuse", "title": None, "datetime": None, "snooze_minutes": None,
               "clarification_question": None}
     assert evaluate_quality(CASE, refuse, 0.5) == ([], None)
+
+
+def test_layer3_unicode_letters_and_digits_are_tokenized():
+    assert jaccard("Café42", "café42") == 1.0
+    assert jaccard("東京 会議", "会議 東京") == 1.0

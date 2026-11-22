@@ -18,10 +18,10 @@
 
 **Purpose**: Establish project metadata and the initial implementation layout.
 
-- [ ] T001 [IMPLEMENTATION] Create Python 3.11+ package metadata and development dependencies (`pytest`, `ruff`, `bandit`, `jsonschema`) in `pyproject.toml`.
-- [ ] T002 [P] [IMPLEMENTATION] Add package layout and public exports in `src/reminder_agent/__init__.py` and `src/reminder_agent/__main__.py`.
-- [ ] T003 [IMPLEMENTATION] Create evaluation and evidence directories plus README conventions in `evals/`, `.harness/`, `prompts/`, `evidence/`, and `evidence/README.md`.
-- [ ] T004 [IMPLEMENTATION] Add reusable quality configuration for Ruff and Bandit in `.harness/ruff.toml` and `.harness/bandit.yaml`.
+- [X] T001 [IMPLEMENTATION] Create Python 3.11+ package metadata and development dependencies (`pytest`, `ruff`, `bandit`, `jsonschema`) in `pyproject.toml`.
+- [X] T002 [P] [IMPLEMENTATION] Add package layout and public exports in `src/reminder_agent/__init__.py` and `src/reminder_agent/__main__.py`.
+- [X] T003 [IMPLEMENTATION] Create evaluation and evidence directories plus README conventions in `evals/`, `.harness/`, `prompts/`, `evidence/`, and `evidence/README.md`.
+- [X] T004 [IMPLEMENTATION] Add reusable quality configuration for Ruff and Bandit in `.harness/ruff.toml` and `.harness/bandit.yaml`.
 
 ---
 
@@ -31,18 +31,18 @@
 
 **WARNING**: Complete this phase before any story work or harness run.
 
-- [ ] T005 [IMPLEMENTATION] Implement the five-field reminder input/output contract and intent-specific parsing helpers in `src/reminder_agent/contract.py`, including exactly `text`/`now` input and exactly `intent`, `title`, `datetime`, `snooze_minutes`, and `clarification_question` output fields.
+- [X] T005 [IMPLEMENTATION] Implement the five-field reminder input/output contract and intent-specific parsing helpers in `src/reminder_agent/contract.py`, including exactly `text`/`now` input and exactly `intent`, `title`, `datetime`, `snooze_minutes`, and `clarification_question` output fields.
 - [ ] T006 [IMPLEMENTATION] Implement the Gemini REST provider client in `src/reminder_agent/provider.py` using `urllib`, `LLM_API_KEY`, `x-goog-api-key`, bounded timeouts, retries for transport/timeouts and HTTP 408/429/5xx, no retry for 400/401/402/403, and explicit error classification.
-- [ ] T007 [IMPLEMENTATION] Implement the agent orchestration entry point in `src/reminder_agent/agent.py` so provider output is parsed and locally validated before return.
-- [ ] T008 [IMPLEMENTATION] Create the untrusted reminder prompt in `prompts/system_prompt.md`, keeping reminder text as data and requiring clarification for missing or ambiguous dates/times.
-- [ ] T009 [IMPLEMENTATION] Create the closed JSON Schema with exactly five fields, `additionalProperties: false`, intent enum, nullable payload fields, title maximum 100 characters, and snooze range in `.harness/schema/result.schema.json`.
-- [ ] T010 [IMPLEMENTATION] Create the at-least-15-case traceable evaluation dataset in `evals/dataset.json`, covering normal, boundary, ambiguous, missing-information, malformed, and adversarial inputs with IDs, requirement IDs, inputs, expected intents, expected properties, and datetime fields/tolerances where applicable.
-- [ ] T011 [IMPLEMENTATION] Create immutable threshold metadata in `evals/threshold.json` requiring 100% schema validity, 100% guardrail pass rate, and at least 85% overall pass rate.
-- [ ] T012 [IMPLEMENTATION] Implement the first schema evaluator layer in `.harness/schema_eval.py` to parse JSON and validate exactly the closed contract and field constraints.
-- [ ] T013 [IMPLEMENTATION] Implement the second invariant/property evaluator layer in `.harness/property_eval.py` to enforce intent-specific nullability, title bounds, offset-bearing future datetimes, snooze integer bounds, clarification/refusal behavior, and input requirements.
-- [ ] T014 [IMPLEMENTATION] Implement the third quality/title-similarity evaluator layer in `.harness/quality_eval.py` using this title-similarity method identically: Lowercase text; tokens are runs of Unicode letters and digits (no underscores); remove the stopwords {a, an, the, to, my, me, for, of, about, remind, reminder, please}; similarity = |A intersect B| / |A union B|, and 1.0 when both sets are empty; pass at 0.5 or above.
-- [ ] T015 [IMPLEMENTATION] Implement the evaluation runner in `.harness/run_eval.py` with stable ascending case-ID order, the schema -> property -> similarity stage sequence, fixed-threshold aggregation, traceable PASS/FAIL/SERVICE_ERROR outcomes, and provider errors excluded from pass-rate denominators.
-- [ ] T016 [IMPLEMENTATION] Implement the static runner in `.harness/run_static.py` to run the static quality checks and produce structured evidence-compatible output.
+- [X] T007 [IMPLEMENTATION] Implement the agent orchestration entry point in `src/reminder_agent/agent.py` so provider output is parsed and locally validated before return.
+- [X] T008 [IMPLEMENTATION] Create the untrusted reminder prompt in `prompts/system_prompt.md`, keeping reminder text as data and requiring clarification for missing or ambiguous dates/times.
+- [X] T009 [IMPLEMENTATION] Create the closed JSON Schema with exactly five fields, `additionalProperties: false`, intent enum, nullable payload fields, title maximum 100 characters, and snooze range in `.harness/schema/result.schema.json`.
+- [X] T010 [IMPLEMENTATION] Create the at-least-15-case traceable evaluation dataset in `evals/dataset.json`, covering normal, boundary, ambiguous, missing-information, malformed, and adversarial inputs with IDs, requirement IDs, inputs, expected intents, expected properties, and datetime fields/tolerances where applicable.
+- [X] T011 [IMPLEMENTATION] Create immutable threshold metadata in `evals/threshold.json` requiring 100% schema validity, 100% guardrail pass rate, and at least 85% overall pass rate.
+- [X] T012 [IMPLEMENTATION] Implement the first schema evaluator layer in `.harness/schema_eval.py` to parse JSON and validate exactly the closed contract and field constraints.
+- [X] T013 [IMPLEMENTATION] Implement the second invariant/property evaluator layer in `.harness/property_eval.py` to enforce intent-specific nullability, title bounds, offset-bearing future datetimes, snooze integer bounds, clarification/refusal behavior, and input requirements.
+- [X] T014 [IMPLEMENTATION] Implement the third quality/title-similarity evaluator layer in `.harness/quality_eval.py` using this title-similarity method identically: Lowercase text; tokens are runs of Unicode letters and digits (no underscores); remove the stopwords {a, an, the, to, my, me, for, of, about, remind, reminder, please}; similarity = |A intersect B| / |A union B|, and 1.0 when both sets are empty; pass at 0.5 or above.
+- [X] T015 [IMPLEMENTATION] Implement the evaluation runner in `.harness/run_eval.py` with stable ascending case-ID order, the schema -> property -> similarity stage sequence, fixed-threshold aggregation, traceable PASS/FAIL/SERVICE_ERROR outcomes, and provider errors excluded from pass-rate denominators.
+- [X] T016 [IMPLEMENTATION] Implement the static runner in `.harness/run_static.py` to run the static quality checks and produce structured evidence-compatible output.
 - [ ] T017 [IMPLEMENTATION] Preserve the complete first generated implementation snapshot in `evidence/eval-runs/initial-generation/baseline/` (copy `src/`, `tests/`, `prompts/`, `evals/`, and `.harness/`) before any evaluation or static harness run.
 
 **Checkpoint**: Contract, provider, prompt, dataset, threshold, all three evaluator layers, both runners, and the immutable initial-generation snapshot exist.
@@ -57,16 +57,16 @@
 
 ### Tests for User Story 1
 
-- [ ] T018 [P] [US1] [TEST] Add unit tests for create/reschedule contract parsing, title and datetime invariants, and future-time checks in `tests/test_contract_and_agent.py`.
-- [ ] T019 [P] [US1] [TEST] Add unit tests for every `create`/`reschedule` dataset boundary across the schema evaluator, invariant/property evaluator, and quality/title-similarity evaluator in `tests/test_evaluators.py`.
-- [ ] T020 [P] [US1] [TEST] Add unit tests for evaluation runner case ordering, stage short-circuiting, overall/guardrail/schema aggregation, and fixed thresholds in `tests/test_runner.py`.
-- [ ] T021 [P] [US1] [TEST] Add unit tests for the static runner's quality-check invocation and evidence-compatible report output in `tests/test_runner.py`.
+- [X] T018 [P] [US1] [TEST] Add unit tests for create/reschedule contract parsing, title and datetime invariants, and future-time checks in `tests/test_contract_and_agent.py`.
+- [X] T019 [P] [US1] [TEST] Add unit tests for every `create`/`reschedule` dataset boundary across the schema evaluator, invariant/property evaluator, and quality/title-similarity evaluator in `tests/test_evaluators.py`.
+- [X] T020 [P] [US1] [TEST] Add unit tests for evaluation runner case ordering, stage short-circuiting, overall/guardrail/schema aggregation, and fixed thresholds in `tests/test_runner.py`.
+- [X] T021 [P] [US1] [TEST] Add unit tests for the static runner's quality-check invocation and evidence-compatible report output in `tests/test_runner.py`.
 
 ### Implementation for User Story 1
 
-- [ ] T022 [US1] [IMPLEMENTATION] Complete create/reschedule interpretation in `src/reminder_agent/agent.py`, using the offset in `now` unless text specifies another offset and never guessing for missing date-time details.
-- [ ] T023 [US1] [IMPLEMENTATION] Add create/reschedule title extraction and strict future-datetime validation to `src/reminder_agent/contract.py`.
-- [ ] T024 [US1] [IMPLEMENTATION] Run and repair only story-specific unit tests for create/reschedule in `tests/test_contract_and_agent.py` and `tests/test_evaluators.py`.
+- [X] T022 [US1] [IMPLEMENTATION] Complete create/reschedule interpretation in `src/reminder_agent/agent.py`, using the offset in `now` unless text specifies another offset and never guessing for missing date-time details.
+- [X] T023 [US1] [IMPLEMENTATION] Add create/reschedule title extraction and strict future-datetime validation to `src/reminder_agent/contract.py`.
+- [X] T024 [US1] [IMPLEMENTATION] Run and repair only story-specific unit tests for create/reschedule in `tests/test_contract_and_agent.py` and `tests/test_evaluators.py`.
 
 **Checkpoint**: Create/reschedule behavior passes independently and leaves title, datetime, snooze, and clarification fields with the required intent-specific values.
 
@@ -80,13 +80,13 @@
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] [TEST] Add parameterized snooze tests for 1, 15, 1440, zero, negative, above 1440, fractional, string-valued, and missing values in `tests/test_contract_and_agent.py`.
-- [ ] T026 [P] [US2] [TEST] Add snooze property and schema evaluator tests in `tests/test_evaluators.py`.
+- [X] T025 [P] [US2] [TEST] Add parameterized snooze tests for 1, 15, 1440, zero, negative, above 1440, fractional, string-valued, and missing values in `tests/test_contract_and_agent.py`.
+- [X] T026 [P] [US2] [TEST] Add snooze property and schema evaluator tests in `tests/test_evaluators.py`.
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] [IMPLEMENTATION] Implement snooze parsing and validation in `src/reminder_agent/contract.py` and `src/reminder_agent/agent.py`, with all non-snooze fields null.
-- [ ] T028 [US2] [IMPLEMENTATION] Run and repair only snooze-focused unit tests in `tests/test_contract_and_agent.py` and `tests/test_evaluators.py`.
+- [X] T027 [US2] [IMPLEMENTATION] Implement snooze parsing and validation in `src/reminder_agent/contract.py` and `src/reminder_agent/agent.py`, with all non-snooze fields null.
+- [X] T028 [US2] [IMPLEMENTATION] Run and repair only snooze-focused unit tests in `tests/test_contract_and_agent.py` and `tests/test_evaluators.py`.
 
 **Checkpoint**: Supported snooze boundaries pass and invalid/missing durations never become valid snooze results.
 
@@ -100,13 +100,13 @@
 
 ### Tests for User Story 3
 
-- [ ] T029 [P] [US3] [TEST] Add missing-time, ambiguous, empty, whitespace, and gibberish cases in `tests/test_contract_and_agent.py`.
-- [ ] T030 [P] [US3] [TEST] Add clarify/refuse nullability and nonempty clarification-question tests in `tests/test_evaluators.py`.
+- [X] T029 [P] [US3] [TEST] Add missing-time, ambiguous, empty, whitespace, and gibberish cases in `tests/test_contract_and_agent.py`.
+- [X] T030 [P] [US3] [TEST] Add clarify/refuse nullability and nonempty clarification-question tests in `tests/test_evaluators.py`.
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] [IMPLEMENTATION] Implement clarify/refuse result handling in `src/reminder_agent/agent.py` and `src/reminder_agent/contract.py`, with `clarification_question` non-null for clarify and all payload fields null for refuse.
-- [ ] T032 [US3] [IMPLEMENTATION] Run and repair only clarification-focused unit tests in `tests/test_contract_and_agent.py` and `tests/test_evaluators.py`.
+- [X] T031 [US3] [IMPLEMENTATION] Implement clarify/refuse result handling in `src/reminder_agent/agent.py` and `src/reminder_agent/contract.py`, with `clarification_question` non-null for clarify and all payload fields null for refuse.
+- [X] T032 [US3] [IMPLEMENTATION] Run and repair only clarification-focused unit tests in `tests/test_contract_and_agent.py` and `tests/test_evaluators.py`.
 
 **Checkpoint**: Missing or ambiguous input produces clarification/refusal and never creates an invented reminder datetime.
 
@@ -120,15 +120,15 @@
 
 ### Tests for User Story 4
 
-- [ ] T033 [P] [US4] [TEST] Add prompt-injection, secret/prompt disclosure, instruction-change, delete/list, mixed reminder/injection, and unrelated-request cases in `tests/test_contract_and_agent.py`.
-- [ ] T034 [P] [US4] [TEST] Add provider mock tests for retry classification, authentication/invalid-request no-retry behavior, malformed responses, exhausted retries, and credential-free diagnostics in `tests/test_provider.py`.
-- [ ] T035 [P] [US4] [TEST] Add guardrail pass-rate and SERVICE_ERROR separation tests in `tests/test_runner.py`.
+- [X] T033 [P] [US4] [TEST] Add prompt-injection, secret/prompt disclosure, instruction-change, delete/list, mixed reminder/injection, and unrelated-request cases in `tests/test_contract_and_agent.py`.
+- [X] T034 [P] [US4] [TEST] Add provider mock tests for retry classification, authentication/invalid-request no-retry behavior, malformed responses, exhausted retries, and credential-free diagnostics in `tests/test_provider.py`.
+- [X] T035 [P] [US4] [TEST] Add guardrail pass-rate and SERVICE_ERROR separation tests in `tests/test_runner.py`.
 
 ### Implementation for User Story 4
 
 - [ ] T036 [US4] [IMPLEMENTATION] Complete provider error classification and bounded retry behavior in `src/reminder_agent/provider.py`, ensuring credentials never appear in output or logs.
-- [ ] T037 [US4] [IMPLEMENTATION] Strengthen the guardrail prompt and agent refusal handling in `prompts/system_prompt.md` and `src/reminder_agent/agent.py`, treating reminder text strictly as untrusted data.
-- [ ] T038 [US4] [IMPLEMENTATION] Run and repair only guardrail and provider unit tests in `tests/test_contract_and_agent.py` and `tests/test_provider.py`.
+- [X] T037 [US4] [IMPLEMENTATION] Strengthen the guardrail prompt and agent refusal handling in `prompts/system_prompt.md` and `src/reminder_agent/agent.py`, treating reminder text strictly as untrusted data.
+- [X] T038 [US4] [IMPLEMENTATION] Run and repair only guardrail and provider unit tests in `tests/test_contract_and_agent.py` and `tests/test_provider.py`.
 
 **Checkpoint**: Every guardrail case refuses and provider/service failures remain separate from functional pass rates.
 
@@ -138,14 +138,14 @@
 
 **Purpose**: Verify the complete implementation, preserve traceability, and record final evidence.
 
-- [ ] T039 [TEST] Run the complete unit suite with `python -m pytest` and resolve any failures in `tests/`.
+- [X] T039 [TEST] Run the complete unit suite with `python -m pytest` and resolve any failures in `tests/`.
 - [ ] T040 [TEST] Run the static runner with `python .harness/run_static.py` and confirm Ruff and Bandit report zero findings in `evidence/static-runs/`.
-- [ ] T041 [TEST] Validate every dataset case has ID, requirement IDs, input, expected intent, expected properties, and applicable datetime metadata in `evals/dataset.json`.
+- [X] T041 [TEST] Validate every dataset case has ID, requirement IDs, input, expected intent, expected properties, and applicable datetime metadata in `evals/dataset.json`.
 - [ ] T042 [IMPLEMENTATION] Verify the final evaluation report is recorded under `evidence/eval-runs/` and preserves fixed 100% schema, 100% guardrail, and at least 85% overall thresholds from `evals/threshold.json`.
 - [ ] T043 [TEST] Run the final evaluation with `python .harness/run_eval.py --dataset evals/dataset.json` and record the timestamped JSON report under `evidence/eval-runs/`.
-- [ ] T044 [IMPLEMENTATION] Review final evidence against `specs/001-reminder-agent/spec.md`, `specs/001-reminder-agent/plan.md`, and `specs/001-reminder-agent/quickstart.md`, preserving PASS/FAIL and SERVICE_ERROR separation without editing results.
-- [ ] T045 [TEST] Verify every public Python function in `src/` has parameter and return type hints using the `ast` module.
-- [ ] T046 [TEST] Add a repository secret-scan gate to `.harness/run_static.py` that fails on API-key patterns and writes the scan result under `evidence/static-runs/`.
+- [X] T044 [IMPLEMENTATION] Review final evidence against `specs/001-reminder-agent/spec.md`, `specs/001-reminder-agent/plan.md`, and `specs/001-reminder-agent/quickstart.md`, preserving PASS/FAIL and SERVICE_ERROR separation without editing results.
+- [X] T045 [TEST] Verify every public Python function in `src/` has parameter and return type hints using the `ast` module.
+- [X] T046 [TEST] Add a repository secret-scan gate to `.harness/run_static.py` that fails on API-key patterns and writes the scan result under `evidence/static-runs/`.
 
 **Checkpoint**: The initial implementation is preserved, unit and static checks pass, and the final evaluation is recorded under evidence with immutable thresholds.
 

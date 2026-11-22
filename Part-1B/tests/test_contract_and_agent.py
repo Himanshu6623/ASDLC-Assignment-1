@@ -107,6 +107,18 @@ def test_constitution_iv_invalid_structure_is_not_returned():
     assert safe_result(ok) == GOOD
 
 
+@pytest.mark.parametrize("minutes", [1, 15, 1440])
+def test_snooze_boundary_values_are_valid(minutes):
+    result = {
+        "intent": "snooze",
+        "title": None,
+        "datetime": None,
+        "snooze_minutes": minutes,
+        "clarification_question": None,
+    }
+    assert validate_result(result) == []
+
+
 def test_system_prompt_names_every_intent_and_untrusted_text_rule():
     prompt = load_system_prompt()
     for word in ("create", "reschedule", "snooze", "clarify", "refuse", "DATA"):

@@ -88,6 +88,21 @@ def test_client_errors_are_not_retried(scripted):
     assert info.value.kind == "http" and info.value.status == 403
 
 
+@pytest.mark.parametrize("status", [400, 401, 402, 403])
+def test_no_retry_statuses_are_not_retried(scripted, status):
+    scripted.script = [Response(status, b"denied")]
+    with pytest.raises(ServiceError):
+        make().generate("s", "u")
+    assert len(scripted.script) == 0
+
+
+def test_request_timeout_is_retried(scripted):
+    sleeps = []
+    scripted.script = [TimeoutError(), TimeoutError(), Response(200, ok_body("ok"))]
+    assert make(sleeps).generate("s", "u") == "ok"
+    assert sleeps == [2.0, 4.0]
+
+
 def test_blocked_and_empty_replies_are_service_errors(scripted):
     scripted.script = [Response(200, json.dumps({"promptFeedback": {"blockReason": "SAFETY"}}).encode())]
     with pytest.raises(ServiceError) as blocked:

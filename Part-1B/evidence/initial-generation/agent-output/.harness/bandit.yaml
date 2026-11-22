@@ -1,0 +1,2 @@
+# Do NOT add skips to obtain PASS (constitution: agent guardrails).
+exclude_dirs: ["tests"]
