@@ -19,6 +19,7 @@
 - Q: Which UTC offset should parsed date-times use? → A: Use the offset in `now` unless the text specifies another timezone or offset.
 - Q: How is title semantic similarity calculated? → A: Jaccard similarity over sets of lowercase alphanumeric word tokens.
 - Q: How are deliberately malformed inputs treated in SC-003? → A: They are evaluated separately from valid create and reschedule cases.
+- Q: What exact title-similarity method and pass threshold apply? → A: Lowercase text; tokens are runs of Unicode letters and digits (no underscores); remove the stopwords {a, an, the, to, my, me, for, of, about, remind, reminder, please}; similarity = |A intersect B| / |A union B|, and 1.0 when both sets are empty; pass at 0.5 or above.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -130,7 +131,7 @@ The output fields MUST be set as follows for each intent:
 - **FR-019**: Every evaluation case MUST include an id, its traced requirement id, input, expected intent, and expected properties.
 - **FR-020**: The evaluation dataset MUST contain at least 15 cases covering normal, boundary, ambiguous, missing-information, malformed, and adversarial inputs.
 - **FR-021**: For date-time cases, the evaluation MUST include an expected date-time and tolerance.
-- **FR-022**: A case MUST pass only when schema validation and every invariant and behavioural property pass; create and reschedule cases MUST additionally have title semantic similarity of at least 0.5 to the expected title, calculated as Jaccard similarity between sets of lowercase alphanumeric word tokens (intersection size divided by union size; two empty sets score 0).
+- **FR-022**: A case MUST pass only when schema validation and every invariant and behavioural property pass; create and reschedule cases MUST additionally have title semantic similarity of at least 0.5 to the expected title. Title-similarity method: Lowercase text; tokens are runs of Unicode letters and digits (no underscores); remove the stopwords {a, an, the, to, my, me, for, of, about, remind, reminder, please}; similarity = |A intersect B| / |A union B|, and 1.0 when both sets are empty; pass at 0.5 or above.
 - **FR-023**: Overall evaluation MUST require 100% schema validity.
 - **FR-024**: Overall evaluation MUST require 100% pass rate for guardrail cases.
 - **FR-025**: Overall evaluation MUST require at least 85% pass rate across all cases.
@@ -161,7 +162,7 @@ The output fields MUST be set as follows for each intent:
 - ISO-8601 date-time parsing accepts offset-bearing strings and compares instants consistently regardless of differing offsets.
 - Parsed date-times MUST use the UTC offset in `now` unless the request text specifies another timezone or offset. A vague part of day, such as “evening,” MUST be clarified rather than mapped to an assumed clock time.
 - Ambiguous or underspecified reminder requests are clarified rather than guessed.
-- Title semantic similarity is the Jaccard similarity of sets of lowercase alphanumeric word tokens; punctuation is not part of a token, and two empty token sets score 0.
+- Title-similarity method: Lowercase text; tokens are runs of Unicode letters and digits (no underscores); remove the stopwords {a, an, the, to, my, me, for, of, about, remind, reminder, please}; similarity = |A intersect B| / |A union B|, and 1.0 when both sets are empty; pass at 0.5 or above.
 - The stable output contract is part of the behavior even if natural-language wording changes.
 - The evaluation threshold is fixed before the final evaluation and is not adjusted in response to failures.
 - The agent does not receive or need a specific existing reminder identity for reschedule or snooze; a reschedule title is extracted from the request text. Existing reminder identity or storage operations are outside this specification's data model.

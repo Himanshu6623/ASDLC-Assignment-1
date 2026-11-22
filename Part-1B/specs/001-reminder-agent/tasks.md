@@ -40,10 +40,10 @@
 - [ ] T011 [IMPLEMENTATION] Create immutable threshold metadata in `evals/threshold.json` requiring 100% schema validity, 100% guardrail pass rate, and at least 85% overall pass rate.
 - [ ] T012 [IMPLEMENTATION] Implement the first schema evaluator layer in `.harness/schema_eval.py` to parse JSON and validate exactly the closed contract and field constraints.
 - [ ] T013 [IMPLEMENTATION] Implement the second invariant/property evaluator layer in `.harness/property_eval.py` to enforce intent-specific nullability, title bounds, offset-bearing future datetimes, snooze integer bounds, clarification/refusal behavior, and input requirements.
-- [ ] T014 [IMPLEMENTATION] Implement the third quality/title-similarity evaluator layer in `.harness/quality_eval.py` using Jaccard similarity over sets of lowercase Unicode-alphanumeric word tokens and a required create/reschedule score of at least 0.5.
+- [ ] T014 [IMPLEMENTATION] Implement the third quality/title-similarity evaluator layer in `.harness/quality_eval.py` using this title-similarity method identically: Lowercase text; tokens are runs of Unicode letters and digits (no underscores); remove the stopwords {a, an, the, to, my, me, for, of, about, remind, reminder, please}; similarity = |A intersect B| / |A union B|, and 1.0 when both sets are empty; pass at 0.5 or above.
 - [ ] T015 [IMPLEMENTATION] Implement the evaluation runner in `.harness/run_eval.py` with stable ascending case-ID order, the schema -> property -> similarity stage sequence, fixed-threshold aggregation, traceable PASS/FAIL/SERVICE_ERROR outcomes, and provider errors excluded from pass-rate denominators.
 - [ ] T016 [IMPLEMENTATION] Implement the static runner in `.harness/run_static.py` to run the static quality checks and produce structured evidence-compatible output.
-- [ ] T017 [IMPLEMENTATION] Preserve the complete first generated implementation snapshot in `evidence/initial-generation/baseline/` (copy `src/`, `tests/`, `prompts/`, `evals/`, and `.harness/`) before any evaluation or static harness run.
+- [ ] T017 [IMPLEMENTATION] Preserve the complete first generated implementation snapshot in `evidence/eval-runs/initial-generation/baseline/` (copy `src/`, `tests/`, `prompts/`, `evals/`, and `.harness/`) before any evaluation or static harness run.
 
 **Checkpoint**: Contract, provider, prompt, dataset, threshold, all three evaluator layers, both runners, and the immutable initial-generation snapshot exist.
 
@@ -144,6 +144,8 @@
 - [ ] T042 [IMPLEMENTATION] Verify the final evaluation report is recorded under `evidence/eval-runs/` and preserves fixed 100% schema, 100% guardrail, and at least 85% overall thresholds from `evals/threshold.json`.
 - [ ] T043 [TEST] Run the final evaluation with `python .harness/run_eval.py --dataset evals/dataset.json` and record the timestamped JSON report under `evidence/eval-runs/`.
 - [ ] T044 [IMPLEMENTATION] Review final evidence against `specs/001-reminder-agent/spec.md`, `specs/001-reminder-agent/plan.md`, and `specs/001-reminder-agent/quickstart.md`, preserving PASS/FAIL and SERVICE_ERROR separation without editing results.
+- [ ] T045 [TEST] Verify every public Python function in `src/` has parameter and return type hints using the `ast` module.
+- [ ] T046 [TEST] Add a repository secret-scan gate to `.harness/run_static.py` that fails on API-key patterns and writes the scan result under `evidence/static-runs/`.
 
 **Checkpoint**: The initial implementation is preserved, unit and static checks pass, and the final evaluation is recorded under evidence with immutable thresholds.
 
@@ -168,7 +170,7 @@
 ### Mandatory Evidence Ordering
 
 1. Complete T001-T016.
-2. Complete T017 to preserve `evidence/initial-generation/baseline/`.
+2. Complete T017 to preserve `evidence/eval-runs/initial-generation/baseline/`.
 3. Only then run any harness or final evaluation task.
 
 ---

@@ -39,7 +39,7 @@ Implement a Python natural-language reminder agent that accepts untrusted remind
 | III. Testability | Each requirement FR-001..FR-027 maps to evaluation case(s) or a harness-level binary check in the traceability matrix below. | PASS |
 | IV. Untrusted model output | Parse and validate the model response against the closed JSON schema and property invariants before use or return. | PASS |
 | V. Safety | System instructions stay separate from untrusted reminder text; missing or ambiguous time information produces clarification rather than a guess. | PASS |
-| VI. Agent guardrails | Initial generation is preserved under `evidence/initial-generation/`; case sets and 100%/100%/85% thresholds are protected from silent weakening. | PASS |
+| VI. Agent guardrails | Initial generation is preserved under `evidence/eval-runs/initial-generation/baseline/`; case sets and 100%/100%/85% thresholds are protected from silent weakening. | PASS |
 | VII. Failure separation | Transient provider failures are retried; exhausted service errors are reported separately and excluded from functional score denominators. | PASS |
 
 No constitution gate violations or unresolved requirements block the design.
@@ -50,7 +50,7 @@ The `.harness/` runner loads `evals/dataset.json` and processes cases in stable 
 
 1. **Schema validation**: Parse the model result as JSON and require an object with exactly the five output fields, valid types, permitted intent, and schema constraints. A schema failure ends that case's functional checks.
 2. **Invariant/property checks**: Verify intent-specific nullability and bounds, datetime parseability and future ordering, expected intent/properties, and relevant missing-time/guardrail behavior.
-3. **Title similarity**: For create/reschedule cases, tokenize lowercase alphanumeric words into sets and compute Jaccard similarity; two empty sets score zero. Require a score of at least 0.5.
+3. **Title similarity**: For create/reschedule cases, use this title-similarity method identically: Lowercase text; tokens are runs of Unicode letters and digits (no underscores); remove the stopwords {a, an, the, to, my, me, for, of, about, remind, reminder, please}; similarity = |A intersect B| / |A union B|, and 1.0 when both sets are empty; pass at 0.5 or above.
 4. **Aggregation**: After case checks, report schema validity, guardrail pass rate, and overall pass rate against fixed thresholds of 100%, 100%, and at least 85%. Provider errors are separately tallied and excluded from case-rate denominators.
 
 The Gemini adapter uses the REST `generateContent` endpoint and the `x-goog-api-key` header populated from `LLM_API_KEY`. It requests schema-constrained JSON where available but still validates the parsed response locally. Retry transient transport/timeouts and HTTP 408, 429, or 5xx failures up to three total attempts with exponential backoff and jitter. Do not retry invalid-request or authentication failures (including 400, 401, 402, and 403). See [research.md](research.md) for source-backed decisions.
@@ -84,7 +84,7 @@ The dataset includes at least 15 cases spanning normal, boundary, ambiguous, mis
 | FR-019 | `HARNESS-CASE-METADATA` | Every case has ID, requirement IDs, input, expected intent, and expected properties. |
 | FR-020 | `HARNESS-DATASET-COVERAGE` | Dataset has at least 15 cases and all six required input categories. |
 | FR-021 | `HARNESS-DATETIME-ORACLE` | Every datetime case supplies expected datetime and tolerance. |
-| FR-022 | `HARNESS-STAGE-ORDER`, `CASE-TITLE-SIMILARITY-*` | Schema, properties, then Jaccard title similarity >= 0.5; all required checks must pass. |
+| FR-022 | `HARNESS-STAGE-ORDER`, `CASE-TITLE-SIMILARITY-*` | Schema, properties, then title similarity >= 0.5. Lowercase text; tokens are runs of Unicode letters and digits (no underscores); remove the stopwords {a, an, the, to, my, me, for, of, about, remind, reminder, please}; similarity = |A intersect B| / |A union B|, and 1.0 when both sets are empty; pass at 0.5 or above. |
 | FR-023 | `HARNESS-SCHEMA-THRESHOLD` | Aggregate schema-validity threshold is exactly 100%. |
 | FR-024 | `HARNESS-GUARDRAIL-THRESHOLD` | Guardrail pass-rate threshold is exactly 100%. |
 | FR-025 | `HARNESS-OVERALL-THRESHOLD` | Overall pass-rate threshold is at least 85%. |
@@ -113,25 +113,26 @@ src/
 └── reminder_agent/
     ├── __init__.py
     ├── agent.py
-    ├── gemini_client.py
+    ├── provider.py
     └── models.py
 prompts/
-└── reminder-agent.txt
+└── system_prompt.md
 evals/
 └── dataset.json
 .harness/
 ├── schema/
-│   └── reminder-result.schema.json
-├── property_evaluator.py
-├── quality_evaluator.py
-└── run_evals.py
+│   └── result.schema.json
+├── schema_eval.py
+├── property_eval.py
+├── quality_eval.py
+└── run_eval.py
 tests/
 ├── unit/
 ├── integration/
 └── harness/
 evidence/
-├── initial-generation/
-└── evaluations/
+├── static-runs/
+└── eval-runs/
 ```
 
 **Structure Decision**: Use the requested single Python source package at `src/reminder_agent/`, with prompts, evaluation data, harness, tests, and evidence kept in their requested top-level locations. The harness is one runner backed by separate schema, property, and quality-evaluation modules. No `src/`, `tests/`, or other implementation directories are created during planning; the tree above records intended implementation structure only.
