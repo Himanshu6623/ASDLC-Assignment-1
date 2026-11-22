@@ -1,0 +1,32 @@
+{
+  "label": "after-implement",
+  "overall": "PASS",
+  "gates": {
+    "lint": {
+      "passed": true,
+      "exit_code": 0,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    "security": {
+      "passed": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "[manager]\tWARNING\tTest in comment: constant is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: command is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: lists is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: only is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: constant is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: commands is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: no is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: user is not a test name or id, ignoring\n[manager]\tWARNING\tTest in comment: input is not a test name or id, ignoring\n"
+    },
+    "tests": {
+      "passed": true,
+      "exit_code": 0,
+      "stdout": "...................................................................      [100%]\n67 passed in 0.36s\n",
+      "stderr": ""
+    },
+    "secret_scan": {
+      "passed": true,
+      "findings": []
+    },
+    "public_type_hints": {
+      "passed": true,
+      "findings": []
+    }
+  }
+}
